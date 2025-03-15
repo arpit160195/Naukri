@@ -180,7 +180,7 @@ def LoadNaukri(headless):
     # updated to use ChromeDriverManager to match correct chromedriver automatically
     driver = None
     try:
-        driver = webdriver.Chrome(options, service=ChromeService(CM(driver_version="latest").install()))
+        driver = webdriver.Chrome(options, service=ChromeService(CM().install()))
     except Exception as e:
         print(f"Error during Chrome initialization: {e}")
         driver = webdriver.Chrome(options)
