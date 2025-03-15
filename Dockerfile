@@ -82,4 +82,4 @@ RUN python3 -m venv .venv && \
     .venv/bin/pip install -r requirements.txt
 
 # Set entrypoint (optional)
-CMD [".venv/bin/python", "naukri.py"]
+CMD ["/bin/bash", "-c", "source .venv/bin/activate && python naukri.py"]
