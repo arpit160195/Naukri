@@ -48,13 +48,13 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add
 # Install ChromeDriver
 RUN wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$(curl -s https://chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip && \
     unzip /tmp/chromedriver.zip -d /usr/local/bin/ && \
-    rm /tmp/chromedriver.zip
-
-# Kill any running Chrome instances
-    pkill chrome || true && \
+    rm /tmp/chromedriver.zip \
 # Clean up
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Kill any running Chrome instances
+    pkill chrome || true && \
 
 # Setup SSH directory
 RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
