@@ -172,15 +172,15 @@ def LoadNaukri(headless):
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-extensions")
+    options.add_argument("--enable-logging=stderr")
+    options.add_argument("--v=1")
     if headless:
-        options.add_argument("--enable-logging=stderr")
-        options.add_argument("--v=1")
-        options.add_argument("headless=new")
+        options.add_argument("--headless")
 
     # updated to use ChromeDriverManager to match correct chromedriver automatically
     driver = None
     try:
-        driver = webdriver.Chrome(options, service=ChromeService(CM(version="latest").install()))
+        driver = webdriver.Chrome(options, service=ChromeService(CM(driver_version="latest").install()))
     except Exception as e:
         print(f"Error during Chrome initialization: {e}")
         driver = webdriver.Chrome(options)
