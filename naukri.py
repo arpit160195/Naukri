@@ -167,11 +167,11 @@ def LoadNaukri(headless):
     options.add_argument("--disable-popups")
     options.add_argument("--disable-gpu")
     options.add_argument("--incognito")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
     if headless:
         options.add_argument("--enable-logging=stderr")
         options.add_argument("--v=1")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("headless=new")
 
     # updated to use ChromeDriverManager to match correct chromedriver automatically
