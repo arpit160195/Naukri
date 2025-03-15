@@ -193,11 +193,11 @@ def LoadNaukri(headless):
         print("Created a new instance of Chrome Driver")
     except Exception as e:
         print("Failed to create a new instance of Chrome Driver")
-#         print(f"Error during Chrome initialization: {e}")
+        print(f"Error during Chrome initialization: {e}")
 #         shutil.rmtree(temp_dir, ignore_errors=True)  # Cleanup temp_dir on failure
 #         if os.path.exists(user_data_dir):
 #             shutil.rmtree(user_data_dir, ignore_errors=True)
-#         raise e
+        raise e
 
     # Ensure the temporary directory is cleaned up when the driver quits
     def cleanup():
