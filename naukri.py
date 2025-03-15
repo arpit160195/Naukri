@@ -161,11 +161,14 @@ def randomText():
 def LoadNaukri(headless):
     """Open Chrome to load Naukri.com"""
     options = webdriver.ChromeOptions()
+
+    # Create a temporary directory for user data
     temp_dir = tempfile.mkdtemp()
-    shutil.rmtree(temp_dir, ignore_errors=True)  # Clean up if temp_dir exists
-    options.add_argument(f"--user-data-dir={temp_dir}")  # Dynamic directory
+    options.add_argument(f"--user-data-dir={temp_dir}")  # Unique directory for the session
+
+    # Add additional Chrome options
     options.add_argument("--disable-notifications")
-    options.add_argument("--start-maximized")  # ("--kiosk") for MAC
+    options.add_argument("--start-maximized")
     options.add_argument("--disable-popups")
     options.add_argument("--disable-gpu")
     options.add_argument("--incognito")
@@ -177,17 +180,28 @@ def LoadNaukri(headless):
     if headless:
         options.add_argument("--headless")
 
-    # updated to use ChromeDriverManager to match correct chromedriver automatically
+    # Initialize ChromeDriver
     driver = None
     try:
-        driver = webdriver.Chrome(options, service=ChromeService(CM().install()))
+        driver = webdriver.Chrome(service=ChromeService(CM().install()), options=options)
+        print("Google Chrome Launched!")
     except Exception as e:
         print(f"Error during Chrome initialization: {e}")
-        driver = webdriver.Chrome(options)
-    log_msg("Google Chrome Launched!")
+        if temp_dir:
+            shutil.rmtree(temp_dir, ignore_errors=True)  # Cleanup temp_dir on failure
+        raise
 
-    driver.implicitly_wait(3)
+    # Ensure the temporary directory is cleaned up when the driver quits
+    def cleanup():
+        if temp_dir:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            print("Temporary directory cleaned up.")
+
+    # Attach cleanup logic to driver.quit()
+    driver.quit = (lambda original_quit=driver.quit: (original_quit(), cleanup()))  # Override quit()
+
     driver.get(NaukriURL)
+    driver.implicitly_wait(3)
     return driver
 
 
