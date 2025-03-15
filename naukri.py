@@ -9,7 +9,6 @@ import sys
 import time
 import tempfile
 import shutil
-shutil.rmtree(temp_dir, ignore_errors=True)  # Clean up if temp_dir exists
 from datetime import datetime
 from random import choice, randint
 from string import ascii_uppercase, digits
@@ -163,6 +162,7 @@ def LoadNaukri(headless):
     """Open Chrome to load Naukri.com"""
     options = webdriver.ChromeOptions()
     temp_dir = tempfile.mkdtemp()
+    shutil.rmtree(temp_dir, ignore_errors=True)  # Clean up if temp_dir exists
     options.add_argument(f"--user-data-dir={temp_dir}")  # Dynamic directory
     options.add_argument("--disable-notifications")
     options.add_argument("--start-maximized")  # ("--kiosk") for MAC
@@ -181,7 +181,7 @@ def LoadNaukri(headless):
     driver = None
     try:
         driver = webdriver.Chrome(options, service=ChromeService(CM(version="latest").install()))
-    except:
+    except Exception as e:
         print(f"Error during Chrome initialization: {e}")
         driver = webdriver.Chrome(options)
     log_msg("Google Chrome Launched!")
