@@ -9,6 +9,8 @@ import sys
 import time
 import tempfile
 import shutil
+import uuid
+import atexit
 from datetime import datetime
 from random import choice, randint
 from string import ascii_uppercase, digits
@@ -18,11 +20,14 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.chrome.service import Service as ChromeService
+# from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
-from webdriver_manager.chrome import ChromeDriverManager as CM
+# from webdriver_manager.chrome import ChromeDriverManager as CM
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
 
 # Get the current working directory
 cwd = os.getcwd()
@@ -160,12 +165,12 @@ def randomText():
 
 def LoadNaukri(headless):
     """Open Chrome to load Naukri.com"""
-    options = webdriver.ChromeOptions()
+    options = Options()
 
     # Create a temporary directory for user data
-    temp_dir = tempfile.mkdtemp()
-    os.chmod(temp_dir, 0o700)  # Grant read, write, execute permissions for the owner
-    options.add_argument(f"--user-data-dir={temp_dir}")  # Unique directory for the session
+    user_data_dir = tempfile.mkdtemp(prefix="chrome-user-data-" + str(uuid.uuid4()))
+    os.chmod(user_data_dir, 0o700)  # Grant read, write, execute permissions for the owner
+    options.add_argument(f"--user-data-dir={user_data_dir}")  # Unique directory for the session
 
     # Add additional Chrome options
     options.add_argument("--disable-notifications")
@@ -176,29 +181,37 @@ def LoadNaukri(headless):
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-extensions")
-    options.add_argument("--enable-logging=stderr")
-    options.add_argument("--v=1")
+#     options.add_argument("--enable-logging=stderr")
+#     options.add_argument("--v=1")
     if headless:
         options.add_argument("--headless")
 
     # Initialize ChromeDriver
     driver = None
     try:
-        driver = webdriver.Chrome(service=ChromeService(CM().install()), options=options)
-        print("Google Chrome Launched!")
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        print("Created a new instance of Chrome Driver")
     except Exception as e:
-        print(f"Error during Chrome initialization: {e}")
-        shutil.rmtree(temp_dir, ignore_errors=True)  # Cleanup temp_dir on failure
-        raise
+        print("Failed to create a new instance of Chrome Driver")
+#         print(f"Error during Chrome initialization: {e}")
+#         shutil.rmtree(temp_dir, ignore_errors=True)  # Cleanup temp_dir on failure
+#         if os.path.exists(user_data_dir):
+#             shutil.rmtree(user_data_dir, ignore_errors=True)
+#         raise e
 
     # Ensure the temporary directory is cleaned up when the driver quits
     def cleanup():
-        if temp_dir:
-            shutil.rmtree(temp_dir, ignore_errors=True)
-            print("Temporary directory cleaned up.")
+        try:
+            if os.path.exists(user_data_dir):
+                shutil.rmtree(user_data_dir, ignore_errors=True)
+                print(f"Deleted user data directory: {user_data_dir}")
+        except Exception as e:
+            print("Failed to delete user data directory")
+
+    atexit.register(cleanup)
 
     # Attach cleanup logic to driver.quit()
-    driver.quit = (lambda original_quit=driver.quit: (original_quit(), cleanup()))  # Override quit()
+#     driver.quit = (lambda original_quit=driver.quit: (original_quit(), cleanup()))  # Override quit()
 
     driver.get(NaukriURL)
     driver.implicitly_wait(3)
