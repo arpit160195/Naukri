@@ -164,6 +164,7 @@ def LoadNaukri(headless):
 
     # Create a temporary directory for user data
     temp_dir = tempfile.mkdtemp()
+    os.chmod(temp_dir, 0o700)  # Grant read, write, execute permissions for the owner
     options.add_argument(f"--user-data-dir={temp_dir}")  # Unique directory for the session
 
     # Add additional Chrome options
@@ -187,8 +188,7 @@ def LoadNaukri(headless):
         print("Google Chrome Launched!")
     except Exception as e:
         print(f"Error during Chrome initialization: {e}")
-        if temp_dir:
-            shutil.rmtree(temp_dir, ignore_errors=True)  # Cleanup temp_dir on failure
+        shutil.rmtree(temp_dir, ignore_errors=True)  # Cleanup temp_dir on failure
         raise
 
     # Ensure the temporary directory is cleaned up when the driver quits
