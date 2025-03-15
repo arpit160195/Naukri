@@ -163,9 +163,10 @@ def LoadNaukri(headless):
     options.add_argument("--start-maximized")  # ("--kiosk") for MAC
     options.add_argument("--disable-popups")
     options.add_argument("--disable-gpu")
+    options.add_argument("--incognito")
     if headless:
         options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("headless")
+        options.add_argument("headless=new")
 
     # updated to use ChromeDriverManager to match correct chromedriver automatically
     driver = None
