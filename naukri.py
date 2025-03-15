@@ -8,6 +8,8 @@ import os
 import sys
 import time
 import tempfile
+import shutil
+shutil.rmtree(temp_dir, ignore_errors=True)  # Clean up if temp_dir exists
 from datetime import datetime
 from random import choice, randint
 from string import ascii_uppercase, digits
@@ -169,6 +171,7 @@ def LoadNaukri(headless):
     options.add_argument("--incognito")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-extensions")
     if headless:
         options.add_argument("--enable-logging=stderr")
         options.add_argument("--v=1")
@@ -179,6 +182,7 @@ def LoadNaukri(headless):
     try:
         driver = webdriver.Chrome(options, service=ChromeService(CM(version="latest").install()))
     except:
+        print(f"Error during Chrome initialization: {e}")
         driver = webdriver.Chrome(options)
     log_msg("Google Chrome Launched!")
 
