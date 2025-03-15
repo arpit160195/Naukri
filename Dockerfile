@@ -51,7 +51,8 @@ RUN rm -f /root/.ssh/id_rsa
 WORKDIR /app
 
 # Install Python dependencies
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
 # Set entrypoint (optional)
 CMD ["python", "naukri.py"]
