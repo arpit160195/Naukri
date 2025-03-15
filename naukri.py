@@ -40,7 +40,7 @@ mob = "8766283235"  # Type your mobile number here
 updatePDF = False
 
 # If Headless = True, script runs Chrome in headless mode without visible GUI
-headless = True
+headless = False
 
 # ----- No other changes required -----
 
@@ -160,20 +160,24 @@ def randomText():
 def LoadNaukri(headless):
     """Open Chrome to load Naukri.com"""
     options = webdriver.ChromeOptions()
-    options.add_argument(f"--user-data-dir={tempfile.mkdtemp()}")
+    temp_dir = tempfile.mkdtemp()
+    options.add_argument(f"--user-data-dir={temp_dir}")  # Dynamic directory
     options.add_argument("--disable-notifications")
     options.add_argument("--start-maximized")  # ("--kiosk") for MAC
     options.add_argument("--disable-popups")
     options.add_argument("--disable-gpu")
     options.add_argument("--incognito")
     if headless:
+        options.add_argument("--enable-logging=stderr")
+        options.add_argument("--v=1")
+        options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("headless=new")
 
     # updated to use ChromeDriverManager to match correct chromedriver automatically
     driver = None
     try:
-        driver = webdriver.Chrome(options, service=ChromeService(CM().install()))
+        driver = webdriver.Chrome(options, service=ChromeService(CM(version="latest").install()))
     except:
         driver = webdriver.Chrome(options)
     log_msg("Google Chrome Launched!")
