@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import time
+import tempfile
 from datetime import datetime
 from random import choice, randint
 from string import ascii_uppercase, digits
@@ -159,6 +160,7 @@ def randomText():
 def LoadNaukri(headless):
     """Open Chrome to load Naukri.com"""
     options = webdriver.ChromeOptions()
+    options.add_argument(f"--user-data-dir={tempfile.mkdtemp()}")
     options.add_argument("--disable-notifications")
     options.add_argument("--start-maximized")  # ("--kiosk") for MAC
     options.add_argument("--disable-popups")
