@@ -48,7 +48,7 @@ RUN ssh-keyscan github.com >> /root/.ssh/known_hosts && \
 RUN rm -f /root/.ssh/id_rsa
 
 # Set working directory
-WORKDIR /app
+WORKDIR /app/Naukri
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
