@@ -166,6 +166,21 @@ def randomText():
 def LoadNaukri(headless):
     """Open Chrome to load Naukri.com"""
     options = Options()
+    # Explicitly specify the Chrome binary location (as installed by apt-get)
+    options.binary_location = "/usr/bin/google-chrome"
+
+    # If running in non-headless mode, ensure a virtual display is running
+    if not headless:
+        # With Xvfb, the DISPLAY is already set to :99 from the Dockerfile.
+        # However, if you want the code to be more robust when running locally,
+        # you could start Xvfb manually:
+        import subprocess
+        try:
+            # Start Xvfb if not already running (this will run in the background)
+            subprocess.Popen(["Xvfb", ":99", "-screen", "0", "1920x1080x24"])
+            os.environ['DISPLAY'] = ":99"
+        except Exception as e:
+            log_msg("Error starting Xvfb: " + str(e))
 
     # Create a temporary directory for user data
     user_data_dir = tempfile.mkdtemp(prefix="chrome-user-data-" + str(uuid.uuid4()))
@@ -182,22 +197,19 @@ def LoadNaukri(headless):
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-extensions")
-#     options.add_argument("--enable-logging=stderr")
-#     options.add_argument("--v=1")
+    options.add_argument("--remote-debugging-port=9222")
     if headless:
         options.add_argument("--headless")
 
     # Initialize ChromeDriver
     driver = None
     try:
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+#         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        driver = webdriver.Chrome(service=Service(executable_path=os.environ.get('CHROMEDRIVER_PATH')), options=options)
         log_msg("Created a new instance of Chrome Driver")
     except Exception as e:
         log_msg("Failed to create a new instance of Chrome Driver")
         log_msg(f"Error during Chrome initialization: {e}")
-#         shutil.rmtree(temp_dir, ignore_errors=True)  # Cleanup temp_dir on failure
-#         if os.path.exists(user_data_dir):
-#             shutil.rmtree(user_data_dir, ignore_errors=True)
         raise e
 
     # Ensure the temporary directory is cleaned up when the driver quits
@@ -210,9 +222,6 @@ def LoadNaukri(headless):
             log_msg("Failed to delete user data directory")
 
     atexit.register(cleanup)
-
-    # Attach cleanup logic to driver.quit()
-#     driver.quit = (lambda original_quit=driver.quit: (original_quit(), cleanup()))  # Override quit()
 
     driver.get(NaukriURL)
     driver.implicitly_wait(3)
