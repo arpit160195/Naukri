@@ -169,6 +169,7 @@ def LoadNaukri(headless):
 
     # Create a temporary directory for user data
     user_data_dir = tempfile.mkdtemp(prefix="chrome-user-data-" + str(uuid.uuid4()))
+    log_msg("the user dir used is: " + user_data_dir)
     os.chmod(user_data_dir, 0o700)  # Grant read, write, execute permissions for the owner
     options.add_argument(f"--user-data-dir={user_data_dir}")  # Unique directory for the session
 
@@ -190,10 +191,10 @@ def LoadNaukri(headless):
     driver = None
     try:
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        print("Created a new instance of Chrome Driver")
+        log_msg("Created a new instance of Chrome Driver")
     except Exception as e:
-        print("Failed to create a new instance of Chrome Driver")
-        print(f"Error during Chrome initialization: {e}")
+        log_msg("Failed to create a new instance of Chrome Driver")
+        log_msg(f"Error during Chrome initialization: {e}")
 #         shutil.rmtree(temp_dir, ignore_errors=True)  # Cleanup temp_dir on failure
 #         if os.path.exists(user_data_dir):
 #             shutil.rmtree(user_data_dir, ignore_errors=True)
@@ -204,9 +205,9 @@ def LoadNaukri(headless):
         try:
             if os.path.exists(user_data_dir):
                 shutil.rmtree(user_data_dir, ignore_errors=True)
-                print(f"Deleted user data directory: {user_data_dir}")
+                log_msg(f"Deleted user data directory: {user_data_dir}")
         except Exception as e:
-            print("Failed to delete user data directory")
+            log_msg("Failed to delete user data directory")
 
     atexit.register(cleanup)
 
