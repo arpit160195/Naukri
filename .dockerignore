@@ -1,0 +1,13 @@
+# This is just a comment.
+.github
+.idea
+.venv
+.wdm
+.gitignore
+contributing.md
+id_rsa
+LICENSE
+naukri.log
+README.md
+test.py
+test_sample.py

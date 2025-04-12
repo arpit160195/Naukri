@@ -25,7 +25,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 # from webdriver_manager.chrome import ChromeDriverManager as CM
-from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.chrome.options import Options    #use when running locally
+import undetected_chromedriver as uc
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 
@@ -33,9 +34,9 @@ from selenium.webdriver.chrome.service import Service
 cwd = os.getcwd()
 
 # Add folder Path of your resume
-originalResumePath = os.path.join(cwd, 'ArpitCV.pdf')
+originalResumePath = os.path.join(cwd, 'ArpitCV_Perf.pdf')
 # Add Path where modified resume should be saved
-modifiedResumePath = os.path.join(cwd, 'ArpitCV.pdf')
+modifiedResumePath = os.path.join(cwd, 'ArpitCV_Perf.pdf')
 
 # Update your naukri username and password here before running
 username = "arpit160195@gmail.com"
@@ -52,6 +53,7 @@ headless = False
 
 # Set login URL
 NaukriURL = "https://www.naukri.com/nlogin/login"
+# NaukriURL = "https://www.naukri.com/mnjuser/homepage"
 
 logging.basicConfig(
     level=logging.INFO, filename="naukri.log", format="%(asctime)s    : %(message)s"
@@ -165,46 +167,37 @@ def randomText():
 
 def LoadNaukri(headless):
     """Open Chrome to load Naukri.com"""
-    options = Options()
-    # Explicitly specify the Chrome binary location (as installed by apt-get)
-    options.binary_location = "/usr/bin/google-chrome"
+    # options = Options()
+    options = uc.ChromeOptions()
 
-    # If running in non-headless mode, ensure a virtual display is running
-    if not headless:
-        # With Xvfb, the DISPLAY is already set to :99 from the Dockerfile.
-        # However, if you want the code to be more robust when running locally,
-        # you could start Xvfb manually:
-        import subprocess
-        try:
-            # Start Xvfb if not already running (this will run in the background)
-            subprocess.Popen(["Xvfb", ":99", "-screen", "0", "1920x1080x24"])
-            os.environ['DISPLAY'] = ":99"
-        except Exception as e:
-            log_msg("Error starting Xvfb: " + str(e))
+    # Explicitly specify the Chrome binary location
+    # options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"    #use when running locally
+    options.binary_location = "/usr/bin/google-chrome"
 
     # Create a temporary directory for user data
     user_data_dir = tempfile.mkdtemp(prefix="chrome-user-data-" + str(uuid.uuid4()))
     log_msg("the user dir used is: " + user_data_dir)
-    os.chmod(user_data_dir, 0o700)  # Grant read, write, execute permissions for the owner
-    options.add_argument(f"--user-data-dir={user_data_dir}")  # Unique directory for the session
+    options.add_argument(f"--user-data-dir={user_data_dir}")
+
+    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+
 
     # Add additional Chrome options
-    options.add_argument("--disable-notifications")
-    options.add_argument("--start-maximized")
-    options.add_argument("--disable-popups")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--incognito")
+    # options.add_argument("--disable-notifications")
+    # options.add_argument("--start-maximized")
+    # options.add_argument("--disable-popups")
+    options.add_argument("--headless")
+    options.add_argument(f'user-agent={user_agent}')
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-extensions")
-    options.add_argument("--remote-debugging-port=9222")
-    if headless:
-        options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    # options.add_argument("--disable-software-rasterizer")
+    # options.add_argument("--incognito")
 
     # Initialize ChromeDriver
     driver = None
     try:
-#         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)    #use when running loca
         driver = webdriver.Chrome(service=Service(executable_path=os.environ.get('CHROMEDRIVER_PATH')), options=options)
         log_msg("Created a new instance of Chrome Driver")
     except Exception as e:
@@ -224,8 +217,9 @@ def LoadNaukri(headless):
     atexit.register(cleanup)
 
     driver.get(NaukriURL)
-    driver.implicitly_wait(3)
+    driver.implicitly_wait(1)
     return driver
+
 
 
 def naukriLogin(headless=False):
@@ -242,6 +236,8 @@ def naukriLogin(headless=False):
 
         if "naukri" in driver.title.lower():
             log_msg("Website Loaded Successfully.")
+        else:
+            log_msg("Website not loaded.")
 
         emailFieldElement = None
         if is_element_present(driver, By.ID, username_locator):
@@ -378,10 +374,10 @@ def UpdateResume():
         # Merging new pdf with last page of my existing pdf
         # Updated to get last page for pdf files with varying page count
         for pageNum in range(pagecount - 1):
-            output.addPage(existing_pdf.get_page_number(pageNum))
+            output.add_page(existing_pdf.pages[pageNum])
 
-        page = existing_pdf.get_page_number(pagecount - 1)
-        page.mergePage(new_pdf.get_page_number(0))
+        page = existing_pdf.pages[pagecount - 1]
+        page.merge_page(new_pdf.pages[0])
         output.addPage(page)
         # save the new resume file
         with open(modifiedResumePath, "wb") as outputStream:

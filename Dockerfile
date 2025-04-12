@@ -62,6 +62,8 @@ RUN python -c "from undetected_chromedriver.patcher import Patcher; \
     print(f'Patching status: {success}'); \
     assert success, 'ChromeDriver patching failed!'"
 
+# Set CHROMEDRIVER_PATH environment variable
+ENV CHROMEDRIVER_PATH=/appenv/chromedriver
 
 # Create the Naukri project directory and set it as the working directory
 RUN mkdir -p /Naukri
@@ -70,7 +72,7 @@ WORKDIR /Naukri
 # Copy application scripts and dependencies
 COPY naukri.py .
 COPY requirements.txt .
-COPY ArpitCV.pdf .
+COPY ArpitCV_Perf.pdf .
 
 # Install Python application dependencies
 RUN pip install --no-cache-dir -r requirements.txt
