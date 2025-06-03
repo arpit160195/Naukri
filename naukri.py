@@ -25,8 +25,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 # from webdriver_manager.chrome import ChromeDriverManager as CM
-# from selenium.webdriver.chrome.options import Options    #use when running locally
-import undetected_chromedriver as uc
+from selenium.webdriver.chrome.options import Options    #use when running locally
+# import undetected_chromedriver as uc
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 
@@ -167,8 +167,8 @@ def randomText():
 
 def LoadNaukri(headless):
     """Open Chrome to load Naukri.com"""
-    # options = Options()
-    options = uc.ChromeOptions()
+    options = Options()
+    # options = uc.ChromeOptions()
 
     # Explicitly specify the Chrome binary location
     # options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"    #use when running locally
@@ -197,7 +197,7 @@ def LoadNaukri(headless):
     # Initialize ChromeDriver
     driver = None
     try:
-        # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)    #use when running loca
+        # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)    #use when running locally
         driver = webdriver.Chrome(service=Service(executable_path=os.environ.get('CHROMEDRIVER_PATH')), options=options)
         log_msg("Created a new instance of Chrome Driver")
     except Exception as e:
@@ -226,13 +226,16 @@ def naukriLogin(headless=False):
     """Open Chrome browser and Login to Naukri.com"""
     status = False
     driver = None
-    username_locator = "usernameField"
-    password_locator = "passwordField"
+    username_locator = "//*[@id='usernameField']"
+    password_locator = "//*[@id='passwordField']"
     login_btn_locator = "//*[@type='submit' and normalize-space()='Login']"
     skip_locator = "//*[text() = 'SKIP AND CONTINUE']"
+    heading_locator = "//div[@class='info__heading']"
 
     try:
         driver = LoadNaukri(headless)
+
+        print(driver.title)
 
         if "naukri" in driver.title.lower():
             log_msg("Website Loaded Successfully.")
@@ -240,24 +243,52 @@ def naukriLogin(headless=False):
             log_msg("Website not loaded.")
 
         emailFieldElement = None
-        if is_element_present(driver, By.ID, username_locator):
-            emailFieldElement = GetElement(driver, username_locator, locator="ID")
-            time.sleep(1)
-            passFieldElement = GetElement(driver, password_locator, locator="ID")
-            time.sleep(1)
-            loginButton = GetElement(driver, login_btn_locator, locator="XPATH")
+        if is_element_present(driver, By.XPATH, username_locator):
+            log_msg("inside checking the username and pwd locator presence")
+            if WaitTillElementPresent(driver, username_locator, "XPATH", 10):
+                emailFieldElement = GetElement(driver, username_locator, locator="XPATH")
+            if WaitTillElementPresent(driver, password_locator, "XPATH", 10):
+                passFieldElement = GetElement(driver, password_locator, locator="XPATH")
+            if WaitTillElementPresent(driver, login_btn_locator, "XPATH", 10):
+                loginButton = GetElement(driver, login_btn_locator, locator="XPATH")
         else:
             log_msg("None of the elements found to login.")
 
         if emailFieldElement is not None:
-            emailFieldElement.clear()
+            log_msg("inside pushing data in username and pwd locators")
             emailFieldElement.send_keys(username)
-            time.sleep(1)
-            passFieldElement.clear()
+            driver.implicitly_wait(1)
+            if emailFieldElement.get_attribute("value") == username:
+                log_msg("Username entered successfully")
+            else:
+                log_msg("Username not entered successfully")
             passFieldElement.send_keys(password)
-            time.sleep(1)
-            loginButton.send_keys(Keys.ENTER)
-            time.sleep(1)
+            driver.implicitly_wait(1)
+            if passFieldElement.get_attribute("value") == password:
+                log_msg("Password entered successfully")
+            else:
+                log_msg("Password not entered successfully")
+            if loginButton is not None:
+                log_msg("Login button found")
+                loginButton.send_keys(Keys.ENTER)
+                time.sleep(5)
+
+                # After login, check for homepage heading or user profile indicator
+                if WaitTillElementPresent(driver, heading_locator, "XPATH", timeout=20):
+                    CheckPoint = GetElement(driver, heading_locator, "XPATH")
+                    if CheckPoint:
+                        log_msg("Naukri Login Successful")
+                        status = True
+                    else:
+                        log_msg("Login checkpoint element not found")
+                else:
+                    log_msg("Login likely failed – homepage not loaded.")
+
+            else:
+                log_msg("Login button not found")
+            # loginButton.click()
+        else:
+            log_msg("credentials not entered")
 
             # Added click to Skip button
             print("Checking Skip button")
@@ -265,9 +296,16 @@ def naukriLogin(headless=False):
             if WaitTillElementPresent(driver, skip_locator, "XPATH", 10):
                 GetElement(driver, skip_locator, "XPATH").click()
 
+            print(driver.title)
+
+            if "home" in driver.title.lower():
+                log_msg("Homepage Loaded Successfully.")
+            else:
+                log_msg("Homepage not loaded.")
+
             # CheckPoint to verify login
-            if WaitTillElementPresent(driver, "ff-inventory", locator="ID", timeout=40):
-                CheckPoint = GetElement(driver, "ff-inventory", locator="ID")
+            if WaitTillElementPresent(driver, heading_locator, "XPATH", timeout=50):
+                CheckPoint = GetElement(driver, heading_locator, "XPATH")
                 if CheckPoint:
                     log_msg("Naukri Login Successful")
                     status = True
